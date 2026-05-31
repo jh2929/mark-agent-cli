@@ -28,14 +28,28 @@ function download(url, dest) {
         reject(new Error(`Failed to download binary: Status code ${response.statusCode}`));
         return;
       }
+      
       const file = fs.createWriteStream(dest);
+      const totalBytes = parseInt(response.headers['content-length'], 10);
+      let downloadedBytes = 0;
+      
+      response.on('data', (chunk) => {
+        downloadedBytes += chunk.length;
+        if (totalBytes) {
+          const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1);
+          process.stdout.write(`\rDownloading: ${percent}% (${(downloadedBytes / 1024 / 1024).toFixed(1)} MB / ${(totalBytes / 1024 / 1024).toFixed(1)} MB)`);
+        } else {
+          process.stdout.write(`\rDownloading: ${(downloadedBytes / 1024 / 1024).toFixed(1)} MB`);
+        }
+      });
+
       response.pipe(file);
       file.on('finish', () => {
         file.close();
+        console.log('\nMARK-0 binary downloaded successfully.');
         try {
           fs.chmodSync(dest, '755');
         } catch (e) {}
-        console.log('MARK-0 binary downloaded successfully.');
         resolve();
       });
     }).on('error', (err) => {
@@ -50,6 +64,6 @@ download(url, destPath)
     process.exit(0);
   })
   .catch((err) => {
-    console.error(`Error downloading binary: ${err.message}`);
+    console.error(`\nError downloading binary: ${err.message}`);
     process.exit(1);
   });
