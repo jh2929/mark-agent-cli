@@ -13,7 +13,8 @@ const downloadName = (platform === 'linux') ? 'mark' : 'mark';
 
 const destPath = path.join(__dirname, '..', 'bin', binaryName);
 
-const url = `https://github.com/jh2929/mark-agent-releases/releases/latest/download/${downloadName}`;
+const pkg = require('../package.json');
+const url = `https://github.com/jh2929/mark-agent-releases/releases/download/v${pkg.version}/${downloadName}`;
 
 console.log(`Downloading MARK-0 binary from: ${url}`);
 
